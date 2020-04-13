@@ -1,0 +1,22 @@
+{% extends 'base.htm' %}
+{% block headerbit %}
+Name that appears in tab
+{% endblock %}
+{% block titlebit %}The title!{% endblock %}
+{% block bodybit %}
+Hello world.</p>
+<hr>
+<!--<form action="/action_page.php">-->
+<form action="/" method="POST"> 
+<label for="fname">x:</label><br> 
+<input type="text" id="form_x" name="form_x" value="{{defx}}"><br> 
+<label for="lname">y:</label><br> 
+<input type="text" id="form_y" name="form_y" value="{{defy}}"><br>
+<br> 
+<input type="submit" value="Submit"> </form>
+<hr>
+the variable 'thestring' is [{{thestring}}]</p>the variable 'params' is [{{params}}]</p>
+<!--
+<img src="{{ url_for('static',filename=thestring) }}">
+-->
+{% endblock %}
