@@ -7,16 +7,22 @@ Name that appears in tab
 Hello world.</p>
 <hr>
 <!--<form action="/action_page.php">-->
-<form action="/" method="POST"> 
-<label for="fname">x:</label><br> 
-<input type="text" id="form_x" name="form_x" value="{{defx}}"><br> 
-<label for="lname">y:</label><br> 
+<form action="/" method="POST">
+<label for="fname">x:</label><br>
+<input type="text" id="form_x" name="form_x" value="{{defx}}"><br>
+<label for="lname">y:</label><br>
 <input type="text" id="form_y" name="form_y" value="{{defy}}"><br>
-<br> 
+<br>
 <input type="submit" value="Submit"> </form>
 <hr>
-the variable 'thestring' is [{{thestring}}]</p>the variable 'params' is [{{params}}]</p>
+the variable 'thestring' is [{{thestring}}]</p>
+</p>the variable 'params1' is [{{params1}}]</p>
+</p>the variable 'params2' is [{{params2}}]</p>
+</p>the variable 'params3' is [{{params3}}]</p>
+</p>the variable 'params4' is [{{params4}}]</p>
+</p>the variable 'params5' is [{{params5}}]</p>
 <!--
 <img src="{{ url_for('static',filename=thestring) }}">
 -->
+<img src="{{thestring}}">
 {% endblock %}
