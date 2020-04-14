@@ -1,19 +1,17 @@
 {% extends 'base.htm' %}
 {% block headerbit %}
-Name that appears in tab
+Monetary model
 {% endblock %}
-{% block titlebit %}The title!{% endblock %}
+{% block titlebit %}Agent based model of money. <br>You are user number {{defid}} <br>post: {{post_c}} get: {{get_c}} hist: {{pg_hist}}{% endblock %}
 {% block bodybit %}
-Hello world.</p>
+Please select parameters then press the "submit" button.</p>
 <hr>
 <!--<form action="/action_page.php">-->
 <form action="/" method="POST">
 
-<label for="fname">x:</label><br>
-<input type="text" id="form_x" name="form_x" value="{{defx}}"><br>
-
-<label for="lname">y:</label><br>
-<input type="text"   id="form_y" name="form_y" value="{{defy}}"><br>
+{%for f in fl%}
+    {{f.text_to_display}}:<input type="text" id="{{f.form_var}}" name="{{f.form_var}}" value="{{f.user_value}}"><font color=red>{{f.user_error_message}}</font><br>
+{%endfor%}
 
 <input type="hidden"   id="custId" name="custId" value="{{defid}}"><br>
 <br>
