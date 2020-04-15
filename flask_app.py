@@ -20,13 +20,16 @@ has_been_executed="not yet"
 diagnostic_string="...  "
 
 class FormItemStartSetup:
-    def __init__(self, text, thetype, form_var, value):
+    def __init__(self, text, thetype, form_var, value, minv, maxv):
 
         # these are fixed forever
         self.text_to_display = text
         self.form_var = form_var
         self.type = thetype # int / float / flag
         self.start_value = value
+        self.minv = minv
+        self.maxv = maxv
+
         self.user_error_message = ""
         self.user_error_flag = False
         self.user_value = value
@@ -56,10 +59,32 @@ def home():
                 fi.user_value= "???"
 
             if fi.type == "float":
-                pass
+                try:
+                    float(fi.user_value)
+                except:
+                    fi.user_error_message = "Bad float"
             elif fi.type == "int":
-                if fi.user_value.find(".") >= 0:
-                    fi.user_error_message = "decimal point in int??"
+                try:
+                    int(fi.user_value)
+                except:
+                    fi.user_error_message = "Bad integer"
+
+            if fi.type == "int" and fi.user_error_message == "" and fi.minv != "":
+                if int(fi.user_value) < int(fi.minv):
+                    fi.user_error_message = "Must be at least "+fi.minv
+            if fi.type == "int" and fi.user_error_message == "" and fi.maxv != "":
+                if int(fi.user_value) > int(fi.maxv):
+                    fi.user_error_message = "Must be at most "+fi.maxv
+            if fi.type == "float" and fi.user_error_message == "" and fi.minv != "":
+                if float(fi.user_value) < float(fi.minv):
+                    fi.user_error_message = "Must be at least "+fi.minv
+            if fi.type == "int" and fi.user_error_message == "" and fi.maxv != "":
+                if float(fi.user_value) > float(fi.maxv):
+                    fi.user_error_message = "Must be at most "+fi.maxv
+
+        if int(user_value_of_form_var("npc",formlist)) > int(user_value_of_form_var("nag",formlist)):
+            formlist[idx_of_form_var("npc")].user_error_message = formlist[idx_of_form_var("npc")].text_to_display+" must be less than "+formlist[idx_of_form_var("nag")].text_to_display
+            formlist[idx_of_form_var("nag")].user_error_message = formlist[idx_of_form_var("npc")].text_to_display+" must be less than "+formlist[idx_of_form_var("nag")].text_to_display
 
         id_read_from_form = str(request.form['custId'])
 
@@ -106,17 +131,17 @@ def home():
         pg_hist=pg_hist
         )
 
-global_formlist.append(FormItemStartSetup(                                        "x","int",      "form_x","10"))
-global_formlist.append(FormItemStartSetup(                                        "y","int",      "form_y","20"))
-global_formlist.append(FormItemStartSetup(                         "Number of agents","int",         "nag","30"))
-global_formlist.append(FormItemStartSetup(                   "Typical starting money","float",       "tsm","100.0"))
-global_formlist.append(FormItemStartSetup(          "Num agents for price comparison","int",         "npc","3"))
-global_formlist.append(FormItemStartSetup(               "Typical goods made per day","float",      "tgpd","10.0"))
-global_formlist.append(FormItemStartSetup(                    "Num iterations to run","int",         "nir","150000"))
-global_formlist.append(FormItemStartSetup(                                "Max stock","float",     "maxst","70.0"))
-global_formlist.append(FormItemStartSetup(       "Typical days between price changes","float",      "tdpc","3.0"))
-global_formlist.append(FormItemStartSetup(           "Typical days between purchases","float",      "tdbp","1.0"))
-global_formlist.append(FormItemStartSetup(                   "Typical starting price","float",       "tsp","2.0"))
+global_formlist.append(FormItemStartSetup(                                        "x","int",      "form_x",    "10", "",""))
+global_formlist.append(FormItemStartSetup(                                        "y","int",      "form_y",    "20", "",""))
+global_formlist.append(FormItemStartSetup(                         "Number of agents","int",         "nag",    "30", "2","100"))
+global_formlist.append(FormItemStartSetup(                   "Typical starting money","float",       "tsm", "100.0", ".001","1000000"))
+global_formlist.append(FormItemStartSetup(          "Num agents for price comparison","int",         "npc",     "3", "1","100"))
+global_formlist.append(FormItemStartSetup(               "Typical goods made per day","float",      "tgpd",  "10.0", ".001","100"))
+global_formlist.append(FormItemStartSetup(                    "Num iterations to run","int",         "nir","150000", "1","1000000"))
+global_formlist.append(FormItemStartSetup(                                "Max stock","float",     "maxst",  "70.0", "1",""))
+global_formlist.append(FormItemStartSetup(       "Typical days between price changes","float",      "tdpc",   "3.0", ".1","100"))
+global_formlist.append(FormItemStartSetup(           "Typical days between purchases","float",      "tdbp",   "1.0", ".1","100"))
+global_formlist.append(FormItemStartSetup(                   "Typical starting price","float",       "tsp",   "2.0", ".00001",""))
 
 
 

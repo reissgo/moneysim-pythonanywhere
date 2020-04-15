@@ -10,7 +10,7 @@ Please select parameters then press the "submit" button.</p>
 <form action="/" method="POST">
 
 {%for f in fl%}
-    {{f.text_to_display}}:<input type="text" id="{{f.form_var}}" name="{{f.form_var}}" value="{{f.user_value}}"><font color=red>{{f.user_error_message}}</font><br>
+    {{f.text_to_display}}:<input type="text" id="{{f.form_var}}" name="{{f.form_var}}" value="{{f.user_value}}"><font color=red>&nbsp;{{f.user_error_message}}</font><br>
 {%endfor%}
 
 <input type="hidden"   id="custId" name="custId" value="{{defid}}"><br>
