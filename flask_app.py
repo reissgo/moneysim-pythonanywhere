@@ -78,13 +78,13 @@ def home():
             if fi.type == "float" and fi.user_error_message == "" and fi.minv != "":
                 if float(fi.user_value) < float(fi.minv):
                     fi.user_error_message = "Must be at least "+fi.minv
-            if fi.type == "int" and fi.user_error_message == "" and fi.maxv != "":
+            if fi.type == "float" and fi.user_error_message == "" and fi.maxv != "":
                 if float(fi.user_value) > float(fi.maxv):
                     fi.user_error_message = "Must be at most "+fi.maxv
 
         if int(user_value_of_form_var("npc",formlist)) > int(user_value_of_form_var("nag",formlist)):
-            formlist[idx_of_form_var("npc")].user_error_message = formlist[idx_of_form_var("npc")].text_to_display+" must be less than "+formlist[idx_of_form_var("nag")].text_to_display
-            formlist[idx_of_form_var("nag")].user_error_message = formlist[idx_of_form_var("npc")].text_to_display+" must be less than "+formlist[idx_of_form_var("nag")].text_to_display
+            formlist[idx_of_form_var("npc")].user_error_message = "'"+formlist[idx_of_form_var("npc")].text_to_display+"' must be less than '"+formlist[idx_of_form_var("nag")].text_to_display+"'"
+            formlist[idx_of_form_var("nag")].user_error_message = "'"+formlist[idx_of_form_var("npc")].text_to_display+"' must be less than '"+formlist[idx_of_form_var("nag")].text_to_display+"'"
 
         id_read_from_form = str(request.form['custId'])
 
