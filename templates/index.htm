@@ -1,24 +1,63 @@
 {% extends 'base.htm' %}
+
 {% block headerbit %}
 Monetary model
 {% endblock %}
-{% block titlebit %}Agent based model of money. <br>You are user number {{defid}} <br>post: {{post_c}} get: {{get_c}} hist: {{pg_hist}}{% endblock %}
+{% block titlebit %}Agent based model of money.{% endblock %}
+<!--You are user number {{defid}}-->
+
 {% block bodybit %}
 Please select parameters then press the "submit" button.</p>
-<hr>
+
 <!--<form action="/action_page.php">-->
 <form action="/" method="POST">
 
-{%for f in fl%}
-    {{f.text_to_display}}:<input type="text" id="{{f.form_var}}" name="{{f.form_var}}" value="{{f.user_value}}"><font color=red>&nbsp;{{f.user_error_message}}</font><br>
-{%endfor%}
+<table>
+<tr>
+<td>
+    <table>
+    <tr><td colspan=2 bgcolor=#ddbbdd align=center><b>Parameters</b></td></tr>
+    {%for f in fl%}
+        {% if f.type != "flag" %}
+            <tr>
+                <td bgcolor=#ddbbdd>{{f.form_var}}:{{f.text_to_display}}</td>
+
+                    <td bgcolor=#ddbbdd><input type="text" id="{{f.form_var}}" name="{{f.form_var}}" value="{{f.user_value}}"></td>
+
+                <td><font color=red>&nbsp;{{f.user_error_message}}</font></td>
+            </tr>
+        {% endif %}
+    {%endfor%}
+    </table>
+</td>
+<td>
+    <table>
+    <tr><td colspan=2 bgcolor=#dddddd align=center><b>Graphs to display</b></td></tr>
+    {%for f in fl%}
+        {% if f.type == "flag" %}
+            <tr>
+                <td bgcolor=#dddddd>{{f.form_var}}:{{f.text_to_display}}</td>
+
+                    <td bgcolor=#dddddd><input type="checkbox" id="{{f.form_var}}" name="{{f.form_var}}" value="flag"
+                            {% if f.user_value == "True" %}
+                                checked
+                            {% endif %}
+                    ></td>
+
+            </tr>
+        {% endif %}
+    {%endfor%}
+    </table>
+</td>
+</tr>
+</table>
 
 <input type="hidden"   id="custId" name="custId" value="{{defid}}"><br>
-<br>
 
-<input type="submit" value="Submit"> </form>
+<input type="submit" value="Submit" style="font-weight: bold;">
+</form>
 
-<hr>
+<!--
 the variable 'thestring' is [{{thestring}}]</p>
 </p>the variable 'params1' is [{{params1}}]</p>
 </p>the variable 'params2' is [{{params2}}]</p>
@@ -26,8 +65,23 @@ the variable 'thestring' is [{{thestring}}]</p>
 </p>the variable 'params4' is [{{params4}}]</p>
 </p>the variable 'params5' is [{{params5}}]</p>
 </p>the variable 'params6' is [{{params6}}]</p>
-<!--
-<img src="{{ url_for('static',filename=thestring) }}">
 -->
+</p>
 <img src="{{thestring}}">
+<hr>
+Image: {{thestring}}</p>
+<div style="
+height: 300px;
+width: 820px;
+border: 1px solid #ccc;
+color: #ffffff;
+background-color: #000000;
+font: 10px/12px Georgia, Garamond, Serif;
+overflow: auto;
+display: flex; flex-direction: column-reverse;
+">
+{% autoescape false %}{{mds}}{% endautoescape %}
+</div>
+
+
 {% endblock %}
