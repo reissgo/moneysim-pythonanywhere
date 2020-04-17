@@ -1,6 +1,7 @@
 from random import gauss, shuffle, randint, random
 from math import exp, log
 
+global_diagnostic_strings = "START<br>"
 
 TYPICAL_STARTING_PRICE = 2.0
 ITERATIONS_PER_DAY = 1000
@@ -346,6 +347,8 @@ def clear_histories():
     num_units_available_on_last_shopping_trip_as_list.clear()
 
 def initialise_model():
+    global global_diagnostic_strings
+    global_diagnostic_strings += "initialise_model()<br>"
     # create and initialise all agents
     global agents
     agents.clear()
@@ -375,6 +378,8 @@ def collect_data_for_plotting_histograms():
         num_units_available_on_last_shopping_trip_as_list.append(agent.num_units_available_on_last_shopping_trip)
 
 def iterate():
+    global global_diagnostic_strings
+
     for agent in agents:
         agent.goods_purchased_in_latest_iteration = 0
         agent.stock_sold_in_latest_iteration = 0

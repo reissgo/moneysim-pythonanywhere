@@ -24,7 +24,7 @@ Please select parameters then press the "submit" button.</p>
 
                     <td bgcolor=#ddbbdd><input type="text" id="{{f.form_var}}" name="{{f.form_var}}" value="{{f.user_value}}"></td>
 
-                <td><font color=red>&nbsp;{{f.user_error_message}}</font></td>
+
             </tr>
         {% endif %}
     {%endfor%}
@@ -54,6 +54,19 @@ Please select parameters then press the "submit" button.</p>
 
 <input type="hidden"   id="custId" name="custId" value="{{defid}}"><br>
 
+
+<font color=#aa0000>
+
+    {%for f in fl%}
+        {% if f.type != "flag" %}
+            {% if f.user_error_message != "" %}
+                Error in "{{f.text_to_display}}" : {{f.user_error_message}}<br>
+            {% endif %}
+        {% endif %}
+    {%endfor%}
+</font>
+
+
 <input type="submit" value="Submit" style="font-weight: bold;">
 </form>
 
@@ -67,8 +80,14 @@ the variable 'thestring' is [{{thestring}}]</p>
 </p>the variable 'params6' is [{{params6}}]</p>
 -->
 </p>
+{% if thestring == "/static/test-no-xy.png" %}
+Test results will appear here when you click on the 'Submit' button<br>
+{% else %}
 <img src="{{thestring}}">
+{% endif%}
+<!--
 <hr>
+Everything below this line is just web development diagnostics...<br>
 Image: {{thestring}}</p>
 <div style="
 height: 300px;
@@ -82,6 +101,6 @@ display: flex; flex-direction: column-reverse;
 ">
 {% autoescape false %}{{mds}}{% endautoescape %}
 </div>
-
+-->
 
 {% endblock %}

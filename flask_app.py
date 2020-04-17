@@ -7,24 +7,28 @@ import matplotlib.pyplot as plt
 import matplotlib
 import copy
 
-from abm import *
 
-global_diagnostic_strings = ""
+
+#from abm import *
+import abm
+
+
+user_form_diagnostic_string = "Not set yet"
 
 def shall_we_show_this_graph(short_description,local_formlist):
-    global global_diagnostic_strings
+    #global abm.global_diagnostic_strings
 
     answer = user_value_of_form_var(short_description,local_formlist)
 
     if answer == "True":
-        global_diagnostic_strings+="T"
+        abm.global_diagnostic_strings+="T"
         return True
     else:
-        global_diagnostic_strings+="F"
+        abm.global_diagnostic_strings+="F"
         return False
 
 def do_all_plots(local_formlist):
-    global global_diagnostic_strings
+    #global abm.global_diagnostic_strings
     #if not colab:
     #    save_GUI_set_constants()
     # prep
@@ -32,9 +36,10 @@ def do_all_plots(local_formlist):
 
     plt.cla()
     plt.clf()
-    plt.text(20, 20, "Testing123")
 
-    #plt.subplots(figsize=(18,12))
+
+    my_dpi=96
+    plt.subplots(figsize=(1024/my_dpi, 700/my_dpi), dpi=my_dpi)
     #plt.subplots_adjust(top=.98)
     #plt.subplots_adjust(bottom=.02)
     #plt.subplots_adjust(right=.98)
@@ -43,11 +48,11 @@ def do_all_plots(local_formlist):
     # count selected graphs
     numrows = 0
 
-    global_diagnostic_strings+="["
+    abm.global_diagnostic_strings+="["
     for st in ["avsp","sp","sfs","gp","mon","wellmon","wellcon","wellmoncon","dtfe"]:
         if shall_we_show_this_graph(st,local_formlist):
             numrows += 1
-    global_diagnostic_strings += "] numrows=" + str(numrows) + "<br>"
+    abm.global_diagnostic_strings += "] numrows=" + str(numrows) + "<br>"
 
     numrows += 1  # for the row of histograms at the bottom
     current_row = 1
@@ -56,120 +61,122 @@ def do_all_plots(local_formlist):
     if shall_we_show_this_graph("avsp",local_formlist):
         plt.subplot(numrows,1,current_row)
         plt.ylabel("Average selling price")
-        plt.plot(list(range(econ_iters_to_do_this_time)), history_of_average_current_selling_price, ",")
+        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_average_current_selling_price, ",")
         current_row += 1
 
     if shall_we_show_this_graph("sp",local_formlist):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{agent_to_diagnose}]\nselling price")
-        plt.plot(list(range(econ_iters_to_do_this_time)), history_of_agents_price, ",")
+        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nselling price")
+        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_price, ",")
         current_row += 1
 
     if shall_we_show_this_graph("sfs",local_formlist):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{agent_to_diagnose}]\nstock for sale")
+        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nstock for sale")
         axes = plt.gca()
-        axes.set_ylim([0, max(max(history_of_agents_stock_for_sale), MAXIMUM_STOCK * 1.2)])
-        plt.text(0, MAXIMUM_STOCK, "Max stock")
-        plt.plot(list(range(econ_iters_to_do_this_time)), history_of_agents_stock_for_sale, ",")
-        plt.plot([0, econ_iters_to_do_this_time], [MAXIMUM_STOCK, MAXIMUM_STOCK],color="#00ff00")
+        axes.set_ylim([0, max(max(abm.history_of_agents_stock_for_sale), abm.MAXIMUM_STOCK * 1.2)])
+        plt.text(0, abm.MAXIMUM_STOCK, "Max stock") # + " " + user_form_diagnostic_string)
+        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_stock_for_sale, ",")
+        plt.plot([0, abm.econ_iters_to_do_this_time], [abm.MAXIMUM_STOCK, abm.MAXIMUM_STOCK],color="#00ff00")
         start = -1
-        for i in range(0, econ_iters_to_do_this_time):
-            if history_of_agents_stock_for_sale[i] >= MAXIMUM_STOCK:
+        for i in range(0, abm.econ_iters_to_do_this_time):
+            if abm.history_of_agents_stock_for_sale[i] >= abm.MAXIMUM_STOCK:
                 if start == -1:
                     start = i
-            if start >= 0 and history_of_agents_stock_for_sale[i] < MAXIMUM_STOCK:
-               plt.plot([start, i], [MAXIMUM_STOCK, MAXIMUM_STOCK], color="#ff0000", linewidth=3)
+            if start >= 0 and abm.history_of_agents_stock_for_sale[i] < abm.MAXIMUM_STOCK:
+               plt.plot([start, i], [abm.MAXIMUM_STOCK, abm.MAXIMUM_STOCK], color="#ff0000", linewidth=3)
                start = -1
         current_row += 1
 
     if shall_we_show_this_graph("dtfe",local_formlist):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{agent_to_diagnose}]\ndays till stock full/empty")
+        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\ndays till stock full/empty")
         axes = plt.gca()
         axes.set_ylim([0, 25])
-        plt.plot(list(range(econ_iters_to_do_this_time)), history_of_agents_days_to_full, ",", color="#ff0000")
-        plt.plot(list(range(econ_iters_to_do_this_time)), history_of_agents_days_to_empty, ",", color="#00ff00")
+        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_days_to_full, ",", color="#ff0000")
+        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_days_to_empty, ",", color="#00ff00")
         current_row += 1
 
     if shall_we_show_this_graph("gp",local_formlist):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{agent_to_diagnose}]\ngoods purchased")
-        plt.plot(list(range(econ_iters_to_do_this_time)), history_of_agents_goods_purchased, ",")
+        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\ngoods purchased")
+        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_goods_purchased, ",")
         current_row += 1
 
     if shall_we_show_this_graph("mon",local_formlist):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{agent_to_diagnose}]\nour money")
-        plt.plot(list(range(econ_iters_to_do_this_time)), history_of_agents_our_money, ",")
+        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nour money")
+        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_our_money, ",")
         current_row += 1
 
     if shall_we_show_this_graph("wellmon",local_formlist):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{agent_to_diagnose}]\nwellbeing from money")
-        plt.plot(list(range(econ_iters_to_do_this_time)), history_of_agents_well_money, ",")
+        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing from money")
+        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_well_money, ",")
         current_row += 1
 
     if shall_we_show_this_graph("wellcon",local_formlist):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{agent_to_diagnose}]\nwellbeing from consumption")
-        plt.plot(list(range(econ_iters_to_do_this_time)), history_of_agents_well_coms, ",")
+        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing from consumption")
+        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_well_coms, ",")
         current_row += 1
 
     if shall_we_show_this_graph("wellmoncon",local_formlist):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{agent_to_diagnose}]\nwellbeing from mon+con")
-        plt.plot(list(range(econ_iters_to_do_this_time)), history_of_agents_well_money_plus_cons, ",")
+        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing from mon+con")
+        plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_well_money_plus_cons, ",")
         current_row += 1
 
     # show histograms
 
     plt.subplot(numrows, 5, (numrows-1) * 5 + 1)
     plt.ylabel("Selling Price")
-    plt.hist(all_prices_as_list, range=(0, max(all_prices_as_list) * 1.1), bins=20)
+    plt.hist(abm.all_prices_as_list, range=(0, max(abm.all_prices_as_list) * 1.1), bins=20)
 
     plt.subplot(numrows, 5, (numrows-1) * 5 + 2)
     plt.ylabel("Stock for sale")
-    plt.hist(stock_for_sale_as_list, range=(0, max(stock_for_sale_as_list) * 1.1), bins=20)
+    plt.hist(abm.stock_for_sale_as_list, range=(0, max(abm.stock_for_sale_as_list) * 1.1), bins=20)
 
     plt.subplot(numrows, 5, (numrows-1) * 5 + 3)
     plt.ylabel("Money")
-    plt.hist(our_money_as_list, range=(0, max(our_money_as_list) * 1.1), bins=20)
+    plt.hist(abm.our_money_as_list, range=(0, max(abm.our_money_as_list) * 1.1), bins=20)
 
     plt.subplot(numrows, 5, (numrows-1) * 5 + 4)
     plt.ylabel("Purchased")
-    plt.hist(num_units_purchased_on_last_shopping_trip_as_list, range=(0, max(num_units_purchased_on_last_shopping_trip_as_list) * 1.3), bins=20)
+    plt.hist(abm.num_units_purchased_on_last_shopping_trip_as_list, range=(0, max(abm.num_units_purchased_on_last_shopping_trip_as_list) * 1.3), bins=20)
 
     plt.subplot(numrows, 5, (numrows-1) * 5 + 5)
     plt.ylabel("Available")
-    plt.hist(num_units_available_on_last_shopping_trip_as_list, range=(0, max(num_units_available_on_last_shopping_trip_as_list) * 1.3), bins=20)
+    plt.hist(abm.num_units_available_on_last_shopping_trip_as_list, range=(0, max(abm.num_units_available_on_last_shopping_trip_as_list) * 1.3), bins=20)
 
     #plt.show()
 
 
 
 def run_model(local_formlist):
-    global global_diagnostic_strings
-    global_diagnostic_strings += "Inside run_model() TYPICAL_STARTING_PRICE={a:.2f}<br>".format(a=TYPICAL_STARTING_PRICE)
+    #global abm.global_diagnostic_strings
+    abm.global_diagnostic_strings += "Inside run_model() TYPICAL_STARTING_PRICE={a:.2f}<br>".format(a=abm.TYPICAL_STARTING_PRICE)
     plt.close()
 
-    initialise_model()
+    abm.global_diagnostic_strings += "About to call initialise_model()<br>"
+    abm.initialise_model()
+    abm.global_diagnostic_strings += "Called initialise_model()<br>"
 
-    for i in range(0, econ_iters_to_do_this_time):
-        iterate()
-        append_current_state_to_history()
+    for i in range(0, abm.econ_iters_to_do_this_time):
+        abm.iterate()
+        abm.append_current_state_to_history()
 
-    collect_data_for_plotting_histograms()
+    abm.collect_data_for_plotting_histograms()
 
     do_all_plots(local_formlist)
 
 
-initialise_model()
-all_prices_as_list.clear()
-stock_for_sale_as_list.clear()
-our_money_as_list.clear()
-num_units_purchased_on_last_shopping_trip_as_list.clear()
-num_units_available_on_last_shopping_trip_as_list.clear()
+abm.initialise_model()
+abm.all_prices_as_list.clear()
+abm.stock_for_sale_as_list.clear()
+abm.our_money_as_list.clear()
+abm.num_units_purchased_on_last_shopping_trip_as_list.clear()
+abm.num_units_available_on_last_shopping_trip_as_list.clear()
 
 global_formlist = []
 
@@ -209,16 +216,17 @@ def user_value_of_form_var(fv,fl):
     return fl[idx_of_form_var(fv)].user_value
 
 def cr_diagnostic_cr(text):  # enforce <br> at start and end
-    global global_diagnostic_strings
-    if global_diagnostic_strings[-4:] != "<br>" and len(global_diagnostic_strings) > 0:
-        global_diagnostic_strings+="<br>"
-    global_diagnostic_strings += text+"<br>"
+    #global abm.global_diagnostic_strings
+    if abm.global_diagnostic_strings[-4:] != "<br>" and len(abm.global_diagnostic_strings) > 0:
+        abm.global_diagnostic_strings+="<br>"
+    abm.global_diagnostic_strings += text+"<br>"
 
 
 @app.route("/", methods=["POST", "GET"])
 def home():
-    global user_counter,has_been_executed,id_read_from_form,diagnostic_string,post_ctr,get_ctr, pg_hist, global_formlist, global_diagnostic_strings
+    global user_counter,has_been_executed,id_read_from_form,diagnostic_string,post_ctr,get_ctr, pg_hist, global_formlist
 
+    '''
     global TYPICAL_STARTING_PRICE
     global ITERATIONS_PER_DAY
     global NUM_AGENTS
@@ -229,6 +237,8 @@ def home():
     global TYPICAL_DAYS_BETWEEN_PRICE_CHANGES
     global TYPICAL_DAYS_BETWEEN_PURCHASES
     global econ_iters_to_do_this_time
+    global user_form_diagnostic_string
+    '''
 
     cr_diagnostic_cr("home("+request.method+")")
 
@@ -292,7 +302,7 @@ def home():
         if include_xy_test_code:
             fname = "test"+str(id_read_from_form)+"_"+str(formlist[idx_of_form_var("form_x")].user_value)+"_"+str(formlist[idx_of_form_var("form_y")].user_value)+".png"
         else:
-            fname="output_"+str(id_read_from_form)+".png"
+            fname="output_"+str(id_read_from_form)+"_"+str(time.time())+".png"
 
         plt.cla()
         plt.clf()
@@ -301,21 +311,25 @@ def home():
         #    plt.plot([0,float(user_value_of_form_var("form_x",formlist))],[0,float(user_value_of_form_var("form_y",formlist))])
         #else:
 
-        NUM_AGENTS = int(user_value_of_form_var("nag",formlist))
-        TYPICAL_STARTING_MONEY = float(user_value_of_form_var("tsm",formlist))
-        NUM_AGENTS_FOR_PRICE_COMPARISON = int(user_value_of_form_var("npc",formlist))
-        TYPICAL_GOODS_MADE_PER_DAY = float(user_value_of_form_var("tgpd",formlist))
-        econ_iters_to_do_this_time = int(user_value_of_form_var("nir",formlist))
-        MAXIMUM_STOCK = float(user_value_of_form_var("maxst",formlist))
-        TYPICAL_DAYS_BETWEEN_PRICE_CHANGES = float(user_value_of_form_var("tdpc",formlist))
-        TYPICAL_DAYS_BETWEEN_PURCHASES = float(user_value_of_form_var("tdbp",formlist))
-        TYPICAL_STARTING_PRICE = float(user_value_of_form_var("tsp",formlist))
+        abm.NUM_AGENTS = int(user_value_of_form_var("nag",formlist))
+        abm.TYPICAL_STARTING_MONEY = float(user_value_of_form_var("tsm",formlist))
+        abm.NUM_AGENTS_FOR_PRICE_COMPARISON = int(user_value_of_form_var("npc",formlist))
+        abm.TYPICAL_GOODS_MADE_PER_DAY = float(user_value_of_form_var("tgpd",formlist))
+        abm.econ_iters_to_do_this_time = int(user_value_of_form_var("nir",formlist))
+        abm.MAXIMUM_STOCK = float(user_value_of_form_var("maxst",formlist))
+        abm.TYPICAL_DAYS_BETWEEN_PRICE_CHANGES = float(user_value_of_form_var("tdpc",formlist))
+        abm.TYPICAL_DAYS_BETWEEN_PURCHASES = float(user_value_of_form_var("tdbp",formlist))
+        abm.TYPICAL_STARTING_PRICE = float(user_value_of_form_var("tsp",formlist))
+
+
+        #user_form_diagnostic_string = user_value_of_form_var("dstr",formlist)
+        #cr_diagnostic_cr("User string = ["+user_form_diagnostic_string+"]")
 
         if id_read_from_form == -1:
-            global_diagnostic_strings += "id_read_from_form == -1 so not calling run_model()<br>"
+            abm.global_diagnostic_strings += "id_read_from_form == -1 so not calling run_model()<br>"
         else:
 
-            global_diagnostic_strings += ("Calling run_model() iters="+str(econ_iters_to_do_this_time)+" tsp="+str(TYPICAL_STARTING_PRICE)+" tsm="+str(TYPICAL_STARTING_MONEY)+" output to "+fname+"<br>")
+            abm.global_diagnostic_strings += ("Calling run_model() iters="+str(abm.econ_iters_to_do_this_time)+" tsp="+str(abm.TYPICAL_STARTING_PRICE)+" tsm="+str(abm.TYPICAL_STARTING_MONEY)+" output to "+fname+"<br>")
 
             run_model(formlist)
 
@@ -365,8 +379,7 @@ def home():
         id_for_hidden_thing = id_read_from_form
 
     return render_template("index.htm",
-        thestring='/static/'+fname+'?dummyforcenocache'+str(int(id_read_from_form)*100000+user_counter),
-
+        thestring='/static/'+fname,
         defid=id_for_hidden_thing,
         params1="",#url_for('/mysite/static'),
         params2="Python version "+sys.version,
@@ -377,7 +390,7 @@ def home():
         fl=formlist,
         post_c=post_ctr,
         get_c=get_ctr,
-        mds=global_diagnostic_strings,
+        mds=abm.global_diagnostic_strings,
         pg_hist=pg_hist
         )
 
@@ -390,7 +403,7 @@ global_formlist.append(FormItemStartSetup(                                "Max s
 global_formlist.append(FormItemStartSetup(       "Typical days between price changes","float",      "tdpc",   "3.0", ".1","100"))
 global_formlist.append(FormItemStartSetup(           "Typical days between purchases","float",      "tdbp",   "1.0", ".1","100"))
 global_formlist.append(FormItemStartSetup(                   "Typical starting price","float",       "tsp",   "2.0", ".00001",""))
-
+#global_formlist.append(FormItemStartSetup(                        "Diagnostic string","string",     "dstr",  "test", "",""))
 
 
 global_formlist.append(FormItemStartSetup(                            "Average selling price","flag",       "avsp",         "True", "",""))
