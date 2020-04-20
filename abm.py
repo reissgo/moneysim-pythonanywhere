@@ -82,13 +82,13 @@ class AgentClass:
         self.iterations_since_last_buy = 0
         self.iterations_since_last_sell = 0
         self.price_rank = 0
-        self.iterations_since_last_price_change = 0
-        self.iterations_since_last_purchase = 0
         self.sales_since_last_price_change = 0
         self.num_units_purchased_on_last_shopping_trip = 0
         self.num_units_available_on_last_shopping_trip = 0
         self.days_between_price_changes = approx_one() * TYPICAL_DAYS_BETWEEN_PRICE_CHANGES
         self.days_between_purchases = approx_one() * TYPICAL_DAYS_BETWEEN_PURCHASES
+        self.iterations_since_last_price_change = randint(0, int(self.days_between_price_changes * ITERATIONS_PER_DAY))
+        self.iterations_since_last_purchase = randint(0, int(self.days_between_purchases * ITERATIONS_PER_DAY))
 
 
 def random_agent():
@@ -113,12 +113,10 @@ def average_current_selling_price():
     return average
 
 def select_agent_to_buy_from(purchasing_agent_idx):
-    # collect SIZE_OF_SELECTION_LIST random other agents
     ans = NO_AGENT_FOUND
-    size_of_selection_list = 4
     agent_list_weighting = []
     small_list_of_other_agent_idxs = []
-    for r in range(0, size_of_selection_list):
+    for r in range(0, NUM_AGENTS_FOR_PRICE_COMPARISON):
         tries = 0
         while True:
             r = random_other_agent_with_stock_for_sale(purchasing_agent_idx)
@@ -183,7 +181,7 @@ def purchase():
 
     for buying_agent_idx in shuffled_agent_index_list:
         if agents[buying_agent_idx].iterations_since_last_purchase > (agents[buying_agent_idx].days_between_purchases * ITERATIONS_PER_DAY):
-            agents[buying_agent_idx].iterations_since_last_purchase = 0
+
             selling_agent_idx = select_agent_to_buy_from(buying_agent_idx)
 
             if selling_agent_idx == NO_AGENT_FOUND:
@@ -197,21 +195,14 @@ def purchase():
                 while True:
                     loop_counter += 1
 
-                    #if loop_counter > 10000:
-                    #   print(f"Oops!.. We found selling agent {selling_agent_idx} that currently has {agents[selling_agent_idx].stock_for_sale} for sale")
-                    #    input("Pak")
                     purchase_made_flag = False
                     # if we can afford to buy then decide if we would *like* to buy
                     if agents[buying_agent_idx].our_money >= (agents[selling_agent_idx].selling_price * UNIT_OF_GOODS):
-                        # we have enough money to buy goods from selling agent...
-                        # haven't checked yet if we actually *want* to make the purchase
-
                         wellbeing_now = wellbeing_from_consumption_and_savings(buying_agent_idx, 0, 0)
-
                         post_purchase_wellbeing = wellbeing_from_consumption_and_savings(
-                                                                                            buying_agent_idx,
-                                                                                            UNIT_OF_GOODS,
-                                                                                            -agents[selling_agent_idx].selling_price * UNIT_OF_GOODS)
+                                                                buying_agent_idx,
+                                                                UNIT_OF_GOODS,
+                                                                -agents[selling_agent_idx].selling_price * UNIT_OF_GOODS)
 
                         if post_purchase_wellbeing > wellbeing_now:
                             purchase_made_flag = True
@@ -219,33 +210,22 @@ def purchase():
 
                             agents[buying_agent_idx].num_units_purchased_on_last_shopping_trip += 1
 
-                            if (num_purchases_made > greatest_ever_num_purchases_made):
-                                greatest_ever_num_purchases_made = num_purchases_made
+                            if (num_purchases_made > diagnostics.greatest_ever_num_purchases_made):
+                                diagnostics.greatest_ever_num_purchases_made = num_purchases_made
 
-                            if (num_purchases_made > 10000):
-                                print("agent %d has made 10000 purchases - bug?", buying_agent)
                             # do the purchase
-
-
-                            # they get less stock but more money
-
                             agents[selling_agent_idx].stock_for_sale -= UNIT_OF_GOODS
                             agents[selling_agent_idx].stock_sold_in_latest_iteration += UNIT_OF_GOODS
-
                             agents[selling_agent_idx].our_money += (agents[selling_agent_idx].selling_price * UNIT_OF_GOODS)
                             agents[selling_agent_idx].iterations_since_last_sell = 0
                             agents[selling_agent_idx].sales_since_last_price_change += 1
-
-                            # we get more consumed but less money
                             agents[buying_agent_idx].goods_purchased += UNIT_OF_GOODS
                             agents[buying_agent_idx].goods_purchased_in_latest_iteration += 1
                             agents[buying_agent_idx].our_money -= (agents[selling_agent_idx].selling_price * UNIT_OF_GOODS)
                             agents[buying_agent_idx].iterations_since_last_buy = 0
-
-                            #last_observed_purchase_price = agents[selling_agent_idx].selling_price
+                            agents[buying_agent_idx].iterations_since_last_purchase = 0
 
                         else:  # report that we can't afford to purchase anything
-                            # print diagnostic?
                             assert purchase_made_flag is False
 
                         if purchase_made_flag and agents[selling_agent_idx].stock_for_sale >= UNIT_OF_GOODS:  # go round loop again and see if we should buy another one
@@ -254,15 +234,9 @@ def purchase():
                                 print(f"Go round again ... wellbeing_now={wellbeing_now} post_purchase_wellbeing={post_purchase_wellbeing}")
                             pass
                         else:
-                            if loop_counter > 10000:
-                                print(f"break")
                             break
-
-                        if loop_counter > 10000:
-                            print(f"??")
                     else:
-                        # we simply can not afford to buy from seller
-                        break;
+                        break; # we simply can not afford to buy from seller
         else:
             agents[buying_agent_idx].iterations_since_last_purchase += 1
 

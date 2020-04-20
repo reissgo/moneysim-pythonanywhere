@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, Response, jsonify
 import sys
 import os
 import time
@@ -14,6 +14,8 @@ import abm
 
 
 user_form_diagnostic_string = "Not set yet"
+
+
 
 def shall_we_show_this_graph(short_description,local_formlist):
     #global abm.global_diagnostic_strings
@@ -39,7 +41,7 @@ def do_all_plots(local_formlist):
 
 
     my_dpi=96
-    plt.subplots(figsize=(1024/my_dpi, 700/my_dpi), dpi=my_dpi)
+    plt.subplots(figsize=(1200/my_dpi, 700/my_dpi), dpi=my_dpi)
     #plt.subplots_adjust(top=.98)
     #plt.subplots_adjust(bottom=.02)
     #plt.subplots_adjust(right=.98)
@@ -60,22 +62,31 @@ def do_all_plots(local_formlist):
     # show selected graphs
     if shall_we_show_this_graph("avsp",local_formlist):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel("Average selling price")
+        plt.ylabel("Average\nselling price")
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_average_current_selling_price, ",")
+
+        frac = .666
+        maxrhs = max(abm.history_of_average_current_selling_price[int(abm.econ_iters_to_do_this_time*frac):])
+        minrhs = min(abm.history_of_average_current_selling_price[int(abm.econ_iters_to_do_this_time*frac):])
+        plt.text(abm.econ_iters_to_do_this_time*frac, minrhs, "Range {:.1f}%".format((maxrhs-minrhs)*100/minrhs))
+        plt.plot([abm.econ_iters_to_do_this_time*frac, abm.econ_iters_to_do_this_time], [maxrhs,maxrhs], color="#00ff00")
+        plt.plot([abm.econ_iters_to_do_this_time*frac, abm.econ_iters_to_do_this_time], [minrhs,minrhs], color="#00ff00")
+
         current_row += 1
 
     if shall_we_show_this_graph("sp",local_formlist):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nselling price")
+        plt.ylabel(f"Agent{abm.agent_to_diagnose}\nselling\nprice")
+
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_price, ",")
         current_row += 1
 
     if shall_we_show_this_graph("sfs",local_formlist):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nstock for sale")
+        plt.ylabel(f"Agent{abm.agent_to_diagnose}\nstock\nfor sale")
         axes = plt.gca()
         axes.set_ylim([0, max(max(abm.history_of_agents_stock_for_sale), abm.MAXIMUM_STOCK * 1.2)])
-        plt.text(0, abm.MAXIMUM_STOCK, "Max stock") # + " " + user_form_diagnostic_string)
+        plt.text(0, abm.MAXIMUM_STOCK, "Max stock")
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_stock_for_sale, ",")
         plt.plot([0, abm.econ_iters_to_do_this_time], [abm.MAXIMUM_STOCK, abm.MAXIMUM_STOCK],color="#00ff00")
         start = -1
@@ -90,7 +101,7 @@ def do_all_plots(local_formlist):
 
     if shall_we_show_this_graph("dtfe",local_formlist):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\ndays till stock full/empty")
+        plt.ylabel(f"Agent{abm.agent_to_diagnose}\ndays till\nstock\nfull/empty")
         axes = plt.gca()
         axes.set_ylim([0, 25])
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_days_to_full, ",", color="#ff0000")
@@ -99,55 +110,55 @@ def do_all_plots(local_formlist):
 
     if shall_we_show_this_graph("gp",local_formlist):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\ngoods purchased")
+        plt.ylabel(f"Agent{abm.agent_to_diagnose}\ngoods\npurchased")
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_goods_purchased, ",")
         current_row += 1
 
     if shall_we_show_this_graph("mon",local_formlist):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nour money")
+        plt.ylabel(f"Agent{abm.agent_to_diagnose}\nour money")
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_our_money, ",")
         current_row += 1
 
     if shall_we_show_this_graph("wellmon",local_formlist):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing from money")
+        plt.ylabel(f"Agent{abm.agent_to_diagnose}\nwellbeing\nfrom money")
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_well_money, ",")
         current_row += 1
 
     if shall_we_show_this_graph("wellcon",local_formlist):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing from consumption")
+        plt.ylabel(f"Agent{abm.agent_to_diagnose}\nwellbeing\nfrom\nconsumption")
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_well_coms, ",")
         current_row += 1
 
     if shall_we_show_this_graph("wellmoncon",local_formlist):
         plt.subplot(numrows,1,current_row)
-        plt.ylabel(f"Agent[{abm.agent_to_diagnose}]\nwellbeing from mon+con")
+        plt.ylabel(f"Agent{abm.agent_to_diagnose}\nwellbeing\nfrom\nmon+con")
         plt.plot(list(range(abm.econ_iters_to_do_this_time)), abm.history_of_agents_well_money_plus_cons, ",")
         current_row += 1
 
     # show histograms
 
-    plt.subplot(numrows, 5, (numrows-1) * 5 + 1)
+    plt.subplot(numrows, 4, (numrows-1) * 4 + 1)
     plt.ylabel("Selling Price")
     plt.hist(abm.all_prices_as_list, range=(0, max(abm.all_prices_as_list) * 1.1), bins=20)
 
-    plt.subplot(numrows, 5, (numrows-1) * 5 + 2)
+    plt.subplot(numrows, 4, (numrows-1) * 4 + 2)
     plt.ylabel("Stock for sale")
     plt.hist(abm.stock_for_sale_as_list, range=(0, max(abm.stock_for_sale_as_list) * 1.1), bins=20)
 
-    plt.subplot(numrows, 5, (numrows-1) * 5 + 3)
+    plt.subplot(numrows, 4, (numrows-1) * 4 + 3)
     plt.ylabel("Money")
     plt.hist(abm.our_money_as_list, range=(0, max(abm.our_money_as_list) * 1.1), bins=20)
 
-    plt.subplot(numrows, 5, (numrows-1) * 5 + 4)
+    plt.subplot(numrows, 4, (numrows-1) * 4 + 4)
     plt.ylabel("Purchased")
     plt.hist(abm.num_units_purchased_on_last_shopping_trip_as_list, range=(0, max(abm.num_units_purchased_on_last_shopping_trip_as_list) * 1.3), bins=20)
 
-    plt.subplot(numrows, 5, (numrows-1) * 5 + 5)
-    plt.ylabel("Available")
-    plt.hist(abm.num_units_available_on_last_shopping_trip_as_list, range=(0, max(abm.num_units_available_on_last_shopping_trip_as_list) * 1.3), bins=20)
+    #plt.subplot(numrows, 5, (numrows-1) * 5 + 5)
+    #plt.ylabel("Available")
+    #plt.hist(abm.num_units_available_on_last_shopping_trip_as_list, range=(0, max(abm.num_units_available_on_last_shopping_trip_as_list) * 1.3), bins=20)
 
     #plt.show()
 
@@ -222,23 +233,13 @@ def cr_diagnostic_cr(text):  # enforce <br> at start and end
     abm.global_diagnostic_strings += text+"<br>"
 
 
+
+
+
+
 @app.route("/", methods=["POST", "GET"])
 def home():
     global user_counter,has_been_executed,id_read_from_form,diagnostic_string,post_ctr,get_ctr, pg_hist, global_formlist
-
-    '''
-    global TYPICAL_STARTING_PRICE
-    global ITERATIONS_PER_DAY
-    global NUM_AGENTS
-    global NUM_AGENTS_FOR_PRICE_COMPARISON
-    global TYPICAL_GOODS_MADE_PER_DAY
-    global MAXIMUM_STOCK
-    global TYPICAL_STARTING_MONEY
-    global TYPICAL_DAYS_BETWEEN_PRICE_CHANGES
-    global TYPICAL_DAYS_BETWEEN_PURCHASES
-    global econ_iters_to_do_this_time
-    global user_form_diagnostic_string
-    '''
 
     cr_diagnostic_cr("home("+request.method+")")
 
@@ -333,20 +334,6 @@ def home():
 
             run_model(formlist)
 
-
-            '''
-            TYPICAL_STARTING_PRICE = 2.0
-            ITERATIONS_PER_DAY = 1000
-            NUM_AGENTS = 30
-            NUM_AGENTS_FOR_PRICE_COMPARISON = 3      # i.e. we purchase from cheapest of N others
-            TYPICAL_GOODS_MADE_PER_DAY = 10.0
-            MAXIMUM_STOCK = TYPICAL_GOODS_MADE_PER_DAY*7
-            TYPICAL_STARTING_MONEY = 100.0
-            TYPICAL_DAYS_BETWEEN_PRICE_CHANGES = 3
-            TYPICAL_DAYS_BETWEEN_PURCHASES = 1
-            econ_iters_to_do_this_time
-            '''
-
             try:
                 os.remove('mysite/static/'+fname)
             except:
@@ -391,19 +378,19 @@ def home():
         post_c=post_ctr,
         get_c=get_ctr,
         mds=abm.global_diagnostic_strings,
-        pg_hist=pg_hist
+        pg_hist=pg_hist,
+        showpng=(str(id_read_from_form) != "-1")
         )
 
 global_formlist.append(FormItemStartSetup(                         "Number of agents","int",         "nag",    "30", "2","100"))
 global_formlist.append(FormItemStartSetup(                   "Typical starting money","float",       "tsm", "100.0", ".001","1000000"))
-global_formlist.append(FormItemStartSetup(          "Num agents for price comparison","int",         "npc",     "3", "1","100"))
+global_formlist.append(FormItemStartSetup(            "Num agents for price comparison","int",       "npc",     "3", "1","100"))
 global_formlist.append(FormItemStartSetup(               "Typical goods made per day","float",      "tgpd",  "10.0", ".001","100"))
-global_formlist.append(FormItemStartSetup(                    "Num iterations to run","int",         "nir","100", "1","1000000"))
+global_formlist.append(FormItemStartSetup(                "Num iterations to run (1000=1day)",       "int",   "nir","10000", "1","1000000"))
 global_formlist.append(FormItemStartSetup(                                "Max stock","float",     "maxst",  "70.0", "1",""))
 global_formlist.append(FormItemStartSetup(       "Typical days between price changes","float",      "tdpc",   "3.0", ".1","100"))
 global_formlist.append(FormItemStartSetup(           "Typical days between purchases","float",      "tdbp",   "1.0", ".1","100"))
 global_formlist.append(FormItemStartSetup(                   "Typical starting price","float",       "tsp",   "2.0", ".00001",""))
-#global_formlist.append(FormItemStartSetup(                        "Diagnostic string","string",     "dstr",  "test", "",""))
 
 
 global_formlist.append(FormItemStartSetup(                            "Average selling price","flag",       "avsp",         "True", "",""))
